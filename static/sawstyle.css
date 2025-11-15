@@ -1,0 +1,151 @@
+/* === Base === */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #1e293b;
+  margin: 0;
+  padding: 24px;
+  background: linear-gradient(135deg, #5cb7f4, #cbb459);
+  background-attachment: fixed;
+  background-blend-mode: overlay;
+
+  /* Center .wrap vertically + horizontally */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+
+/* === Card container === */
+.card {
+   background: linear-gradient(145deg, #5cb7f4, #cbb459);
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
+              0 16px 32px rgba(0, 0, 0, 0.08);
+  max-width: 980px;
+  margin: auto;
+}
+
+/* === Headings === */
+h2, h3 {
+  margin-top: 0;
+  color: #1e293b;
+}
+
+/* === Links === */
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* === Labels & Inputs === */
+label {
+  display: block;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+input[type="number"],
+input[type="text"] {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
+  width: 80%;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  outline: none;
+}
+
+/* === Buttons === */
+button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #000000;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 10px;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.button-form-build {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #000000; /* Or a different color if you want it unique */
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+button:hover {
+  background: #1e40af;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* === Tables === */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  font-size: 14px;
+  
+}
+
+th, td {
+  padding: 8px;
+  text-align: center;
+}
+
+/* === Utilities === */
+.muted {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.error {
+  color: #b91c1c;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+/* Styling for the header row */
+.row.header {
+  display: grid;
+  grid-template-columns: 200px repeat(5, 1fr); /* 200px for Name, 5 equal columns for C1-C5 */
+  gap: 10px; /* Space between columns */
+  margin-bottom: 5px; /* Space below header */
+  padding: 8px;
+  font-weight: bold;
+  border-radius: 4px; /* Slightly rounded corners for header */
+}
+
+/* Styling for each data row */
+.row {
+  display: grid;
+  grid-template-columns: 200px repeat(5, 1fr); /* Same column structure as header */
+  gap: 10px; /* Space between inputs */
+  margin-bottom: 8px; /* Space between rows */
+  align-items: center; /* Vertically align inputs in the middle */
+}
+
+/* Specific styling for inputs within a row to ensure consistent height */
+.row input[type="text"],
+.row input[type="number"] {
+  width: 100%; /* Make inputs fill their grid column */
+  box-sizing: border-box; /* Include padding/border in width calculation */
+}

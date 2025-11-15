@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>SPK — Pilih Metode</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="wrap">
+    <h1>Sistem Pendukung Keputusan</h1>
+    <p>Pilih metode yang ingin digunakan:</p>
+
+    <a class="btn saw" href="/saw">Metode SAW</a>
+    <a class="btn ahp" href="/ahp">Metode AHP</a>
+    <a class="btn wp"  href="/wp">Metode WP</a>
+    <a class="btn ahp" href="/ahp-wp">Metode AHP → WP</a>
+    <a class="btn saw" href="/ahp-saw">Metode AHP → SAW</a>
+  </div>
+</body>
+</html>

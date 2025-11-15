@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>WP — Sistem Pendukung Keputusan</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='sawstyle.css') }}">
+</head>
+<body>
+  <div class="card">
+    <h2>🎬 Sistem Pendukung Keputusan – Pemilihan Film Nobar Kampus (Metode WP)</h2>
+
+    <p><b>Kriteria:</b></p>
+    <ul>
+      <li><b>C1:</b> Genre (Aksi/Superhero/Komedi=9, Drama/Sci-fi/Thriller=7, Documentary/Art House=5)</li>
+      <li><b>C2:</b> Rating IMDb → &lt;6.9=5, &lt;7.5=7, &lt;8.8=9, ≥8.8=10</li>
+      <li><b>C3:</b> Rating Usia (SU=9, 13+=7, 17+=5, 21+=3)</li>
+      <li><b>C4:</b> Durasi (menit) → &lt;60=3, 60–90=5, 90–150=9, &gt;150=7</li>
+      <li><b>C5:</b> Tahun Rilis → &gt;2010=9, 2000–2010=7, &lt;2000=5</li>
+    </ul>
+
+    <form method="post" id="wpForm">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div><label>Jumlah Kandidat</label>
+          <input type="number" name="kandidat" id="kandidat" value="3" min="1"></div>
+        <div style="flex:1">
+          <label>Bobot (C1..C5)</label>
+          <input type="text" name="bobot" value="{{ default_weights or '0.3,0.2,0.2,0.2,0.1' }}">
+        </div>
+        <div style="flex:1">
+          <label>Cost Flags (0=Benefit, 1=Cost)</label>
+          <input type="text" name="cost_flags" value="0,0,0,0,0">
+          <div class="muted">Rekomendasi: 0,0,0,0,0 (semua sudah diubah jadi benefit)</div>
+        </div>
+        <div style="flex:0 0 160px;display:flex;align-items:end">
+          <button type="button" onclick="buildForm()">Buat Form Input</button>
+        </div>
+      </div>
+
+      <div id="formContainer" style="margin-top:20px;"></div>
+
+      <div style="text-align:right;margin-top:16px">
+        <button type="submit" class="btn-submit">Proses WP</button>
+      </div>
+    </form>
+
+    {% if error %}
+      <hr><b style="color:#b91c1c">Error:</b> {{ error }}
+    {% endif %}
+
+    {% if ranking %}
+      <hr>
+      <h3>📋 1️⃣ Matriks Keputusan (Nilai Awal)</h3>
+      <table border="1" cellpadding="6">
+        <tr><th>Film</th><th>C1</th><th>C2</th><th>C3</th><th>C4</th><th>C5</th></tr>
+        {% for row in matrix_input %}
+          <tr><td>{{ row.name }}</td>{% for v in row.vals %}<td>{{ v }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </table>
+
+      <h3>⚖️ 2️⃣ Bobot, Cost Flag & Eksponen</h3>
+      <table border="1" cellpadding="6">
+        <tr><th>Kriteria</th>{% for j in range(1,6) %}<th>C{{ j }}</th>{% endfor %}</tr>
+        <tr><td>Bobot (w)</td>{% for w in weights %}<td>{{ "%.4f"|format(w) }}</td>{% endfor %}</tr>
+        <tr><td>Cost Flag</td>{% for c in cost_flags %}<td>{{ c }}</td>{% endfor %}</tr>
+        <tr><td>Eksponen</td>{% for e in exponents %}<td>{{ "%.4f"|format(e) }}</td>{% endfor %}</tr>
+      </table>
+
+      <h3>🔢 3️⃣ Nilai S<sub>i</sub> = Π (x<sub>ij</sub><sup>eksponen<sub>j</sub></sup>)</h3>
+      <table border="1" cellpadding="6">
+        <tr><th>Film</th><th>S<sub>i</sub></th></tr>
+        {% for i in range(names|length) %}
+          <tr><td>{{ names[i] }}</td><td>{{ "%.6f"|format(S[i]) }}</td></tr>
+        {% endfor %}
+      </table>
+
+      <h3>📈 4️⃣ Normalisasi V<sub>i</sub> = S<sub>i</sub> / ΣS<sub>i</sub></h3>
+      <table border="1" cellpadding="6">
+        <tr><th>Film</th><th>V<sub>i</sub></th></tr>
+        {% for i in range(names|length) %}
+          <tr><td>{{ names[i] }}</td><td><b>{{ "%.6f"|format(V[i]) }}</b></td></tr>
+        {% endfor %}
+      </table>
+
+      <h3>🏆 5️⃣ Ranking Akhir</h3>
+      <table border="1" cellpadding="6">
+        <tr><th>Peringkat</th><th>Nama Film</th><th>Nilai Akhir (V)</th></tr>
+        {% for r in ranking %}
+          <tr><td>{{ loop.index }}</td><td>{{ r.name }}</td><td><b>{{ "%.6f"|format(r.score) }}</b></td></tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+  </div>
+
+  <script>
+    function buildForm(){
+      const n = parseInt(document.getElementById("kandidat").value) || 0;
+      const container = document.getElementById("formContainer");
+      container.innerHTML = "";
+      if (n <= 0) return;
+
+      let html = `<table border="1" cellpadding="6">
+        <thead><tr><th>No</th><th>Nama Film</th><th>Genre</th><th>Rating IMDb</th><th>Rating Usia</th><th>Durasi</th><th>Tahun Rilis</th></tr></thead><tbody>`;
+      for (let i=1; i<=n; i++){
+        html += `<tr><td>${i}</td>
+          <td><input type='text' name='nama_${i}' value='Kandidat ${i}' required></td>
+          <td>
+            <select name='c_${i}_1'>
+              <option value='9'>Aksi</option><option value='9'>Superhero</option><option value='9'>Komedi</option>
+              <option value='7'>Drama</option><option value='7'>Sci-fi</option><option value='7'>Thriller</option>
+              <option value='5'>Documentary</option><option value='5'>Art House</option>
+            </select>
+          </td>
+          <td><input type='number' step='0.1' min='0' max='10' placeholder='IMDb'
+              oninput='convertRating(this,${i})'><input type='hidden' name='c_${i}_2' id='C2_${i}'></td>
+          <td>
+            <select name='c_${i}_3'>
+              <option value='9'>SU</option><option value='7'>13+</option>
+              <option value='5'>17+</option><option value='3'>21+</option>
+            </select>
+          </td>
+          <td><input type='number' placeholder='menit' oninput='convertDuration(this,${i})'><input type='hidden' name='c_${i}_4' id='C4_${i}'></td>
+          <td>
+            <select name='c_${i}_5'>
+              <option value='9'>&gt;2010</option><option value='7'>2000–2010</option><option value='5'>&lt;2000</option>
+            </select>
+          </td></tr>`;
+      }
+      html += "</tbody></table>";
+      container.innerHTML = html;
+    }
+
+    function convertRating(input,i){
+      const v=parseFloat(input.value);let s=0;
+      if(v<6.9)s=5;else if(v<7.5)s=7;else if(v<8.8)s=9;else s=10;
+      document.getElementById(`C2_${i}`).value=s;
+    }
+    function convertDuration(input,i){
+      const v=parseFloat(input.value);let s=0;
+      if(v<60)s=3;else if(v<=90)s=5;else if(v<=150)s=9;else s=7;
+      document.getElementById(`C4_${i}`).value=s;
+    }
+    window.addEventListener("load",()=>buildForm());
+  </script>
+</body>
+</html>
